@@ -1,0 +1,188 @@
+.result__summary {
+  border-left: 6px solid var(--color-primary);
+}
+
+.result__doc-type {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.result__summary-text {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+}
+
+/* 해야 할 일 */
+.result__task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.result__task {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--color-border);
+}
+
+.result__task-action {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.result__task-deadline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+}
+
+.result__dday {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+
+/* 일주일 안 */
+.result__dday--soon {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* 한 달 안 */
+.result__dday--near {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+/* 아직 여유 있음 */
+.result__dday--far {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.result__task-note,
+.result__task-missed,
+.result__source {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.result__caution {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* 용어 풀이 */
+.result__term-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.result__term {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.result__term-summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.result__term-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+/* 주의할 점 */
+.result__warning-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.result__warning {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.result__warning-level {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.result__warning--high {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.result__warning--high .result__warning-level {
+  color: var(--color-danger);
+}
+
+.result__warning--medium {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+}
+
+.result__warning--medium .result__warning-level {
+  color: var(--color-warning);
+}
+
+.result__warning--low {
+  background: var(--color-surface);
+}
+
+.result__warning--low .result__warning-level {
+  color: var(--color-text-muted);
+}
+
+/* 면책과 전문가 연결 */
+.result__disclaimer {
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.result__expert,
+.result__hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* 결과 활용 버튼 */
+.result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.result__copied {
+  min-height: var(--line-height);
+  font-size: var(--font-size-sm);
+  color: var(--color-safe);
+  text-align: center;
+}
+
+.result__download-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  text-align: center;
+}

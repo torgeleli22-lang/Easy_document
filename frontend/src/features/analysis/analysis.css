@@ -1,0 +1,92 @@
+.analysis__status {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.analysis__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.analysis__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
+}
+
+.analysis__step-mark {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.analysis__step--waiting {
+  color: var(--color-text-muted);
+}
+
+.analysis__step--waiting .analysis__step-mark {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.analysis__step--active {
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.analysis__step--active .analysis__step-mark {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.analysis__step--done .analysis__step-mark {
+  background: var(--color-safe-bg);
+  color: var(--color-safe);
+}
+
+.analysis__label {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.analysis__narration {
+  white-space: pre-wrap;
+  font-size: var(--font-size-base);
+}
+
+/* 글자가 이어서 나오는 중이라는 표시 */
+.analysis__caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--color-primary);
+  animation: analysis-blink 900ms steps(2, start) infinite;
+}
+
+@keyframes analysis-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.analysis__error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}

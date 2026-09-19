@@ -1,0 +1,76 @@
+/*
+ * 접근성 토큰.
+ *
+ * 기획서 3.2·1.6 기준: 큰 글씨가 기본, 고대비, 큰 버튼, 한 화면 한 정보.
+ * 가장 어려운 사용자(노약자)가 쓸 수 있는 수준에 맞추면 나머지 모두에게도 편합니다.
+ * UI 라이브러리를 쓰지 않는 이유도 이 값들을 직접 통제하기 위해서입니다.
+ */
+
+:root {
+  /* 글자 — 일반 웹보다 한 단계 크게 잡은 값이 기본입니다 */
+  --font-size-sm: 1.0625rem; /* 17px — 보조 설명 */
+  --font-size-base: 1.25rem; /* 20px — 본문 */
+  --font-size-lg: 1.5rem; /* 24px — 카드 제목 */
+  --font-size-xl: 1.75rem; /* 28px — 화면 제목 */
+  --font-size-2xl: 2.125rem; /* 34px — 한 줄 요약 */
+  --line-height: 1.7;
+  --line-height-tight: 1.4;
+
+  --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Malgun Gothic', system-ui, sans-serif;
+
+  /* 색 — 본문·배경 대비 13:1 이상 (WCAG AAA 기준인 7:1을 넉넉히 넘김) */
+  --color-bg: #ffffff;
+  --color-surface: #f4f6fa;
+  --color-text: #14161a;
+  --color-text-muted: #4a4f58;
+  --color-border: #c7ccd6;
+
+  --color-primary: #1b4dd8;
+  --color-primary-strong: #12379b;
+  --color-on-primary: #ffffff;
+
+  /* 위험 등급 — 색만으로 구분하지 않고 항상 아이콘·글자를 함께 씁니다 */
+  --color-danger: #b3261e;
+  --color-danger-bg: #fdecea;
+  --color-warning: #8a5300;
+  --color-warning-bg: #fff4e0;
+  --color-safe: #1b6b3a;
+  --color-safe-bg: #e7f5ec;
+
+  /* 간격 */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* 손가락으로 누를 수 있는 최소 크기. 노약자 기준이라 권장치(44px)보다 키웠습니다 */
+  --touch-target: 3.5rem; /* 56px */
+
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --shadow-card: 0 1px 3px rgb(20 22 26 / 8%), 0 4px 12px rgb(20 22 26 / 6%);
+
+  /* 키보드 초점 표시 — 절대 지우지 않습니다 */
+  --focus-ring: 3px solid #1b4dd8;
+  --focus-offset: 3px;
+
+  --content-max-width: 40rem;
+}
+
+/*
+ * 글자 크기 단계 (기획서 9장 확장 항목).
+ * 토큰만 미리 준비해두고, 화면 스위치는 2차에서 붙입니다.
+ */
+:root[data-text-size='large'] {
+  --font-size-sm: 1.1875rem;
+  --font-size-base: 1.4375rem;
+  --font-size-lg: 1.75rem;
+  --font-size-xl: 2rem;
+  --font-size-2xl: 2.5rem;
+  --touch-target: 4rem;
+}
