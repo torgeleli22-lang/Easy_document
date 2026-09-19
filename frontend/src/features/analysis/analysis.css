@@ -1,86 +1,227 @@
+/* 넓은 화면에서는 진행 단계를 왼쪽에 고정해두고, 오른쪽에 내용이 쌓입니다.
+   좁은 화면에서는 단계가 위로 올라가 가로로 눕습니다. */
+.progress-layout {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 60rem) {
+  .progress-layout {
+    grid-template-columns: 16rem 1fr;
+    gap: var(--space-7);
+    align-items: start;
+  }
+}
+
+/* 그리드 칸이 안쪽 내용만큼 넓어지면 페이지 전체가 옆으로 삐져나갑니다.
+   min-width를 0으로 눌러야 좁은 화면에서 가로 스크롤이 생기지 않습니다. */
+.progress-layout__rail {
+  min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  .progress-layout__rail {
+    position: sticky;
+    top: var(--space-5);
+  }
+}
+
+.progress-layout__main {
+  min-width: 0;
+  max-width: var(--measure);
+}
+
+.page-title {
+  font-size: var(--font-size-xl);
+  color: var(--color-navy-900);
+}
+
+@media (min-width: 48rem) {
+  .page-title {
+    font-size: var(--font-size-2xl);
+  }
+}
+
 .analysis__status {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  color: var(--color-primary-strong);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
 }
 
-.analysis__steps {
+/* ── 진행 단계 ───────────────────────────────────────── */
+
+/* 좁은 화면에서는 네 단계를 두 줄로 접습니다.
+   가로 스크롤로 숨기면 뒤쪽 단계가 있는 줄 모르고 지나칩니다. */
+.rail {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
 }
 
-.analysis__step {
+@media (min-width: 60rem) {
+  .rail {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+}
+
+.rail__item {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  font-size: var(--font-size-base);
+  flex: none;
 }
 
-.analysis__step-mark {
-  flex: none;
-  width: 1.75rem;
-  height: 1.75rem;
+@media (min-width: 60rem) {
+  .rail__marker {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .rail__item {
+    align-items: flex-start;
+    padding-bottom: var(--space-5);
+    position: relative;
+  }
+
+  /* 단계를 잇는 세로선 */
+  .rail__item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 0.9375rem;
+    top: 2rem;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-border);
+  }
+
+  .rail__item--done:not(:last-child)::after {
+    background: var(--color-navy-600);
+  }
+}
+
+.rail__marker {
   display: grid;
   place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
   border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  position: relative;
+  z-index: 1;
+}
+
+.rail__body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.rail__label {
   font-size: var(--font-size-sm);
   font-weight: 700;
 }
 
-.analysis__step--waiting {
+.rail__detail {
+  display: none;
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
 
-.analysis__step--waiting .analysis__step-mark {
-  background: var(--color-surface);
+@media (min-width: 60rem) {
+  .rail__detail {
+    display: block;
+  }
+}
+
+.rail__item--waiting {
   color: var(--color-text-muted);
 }
 
-.analysis__step--active {
-  font-weight: 700;
-  color: var(--color-primary-strong);
+.rail__item--active .rail__marker {
+  background: var(--color-navy-700);
+  border-color: var(--color-navy-700);
+  color: var(--color-text-on-dark);
 }
 
-.analysis__step--active .analysis__step-mark {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+.rail__item--active .rail__label {
+  color: var(--color-navy-900);
 }
 
-.analysis__step--done .analysis__step-mark {
-  background: var(--color-safe-bg);
+.rail__item--done .rail__marker {
+  background: var(--color-safe-soft);
+  border-color: var(--color-safe);
   color: var(--color-safe);
 }
 
-.analysis__label {
-  flex-direction: row;
+/* ── 확인된 문서 ─────────────────────────────────────── */
+
+.identified {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
   flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-navy-700);
+  border-radius: var(--radius);
 }
 
-.analysis__narration {
+.identified__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.identified__name {
+  font-size: var(--font-size-xl);
+  color: var(--color-navy-900);
+}
+
+/* ── 점검 내용 (스트리밍) ────────────────────────────── */
+
+.transcript {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.transcript__title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.transcript__body {
   white-space: pre-wrap;
   font-size: var(--font-size-base);
 }
 
 /* 글자가 이어서 나오는 중이라는 표시 */
-.analysis__caret {
+.transcript__caret {
   display: inline-block;
-  width: 0.6em;
+  width: 0.5em;
   height: 1.1em;
   margin-left: 2px;
   vertical-align: text-bottom;
-  background: var(--color-primary);
-  animation: analysis-blink 900ms steps(2, start) infinite;
+  background: var(--color-navy-700);
+  animation: transcript-blink 900ms steps(2, start) infinite;
 }
 
-@keyframes analysis-blink {
+@keyframes transcript-blink {
   to {
     visibility: hidden;
   }
@@ -88,5 +229,5 @@
 
 .analysis__error {
   border-color: var(--color-danger);
-  background: var(--color-danger-bg);
+  background: var(--color-danger-soft);
 }

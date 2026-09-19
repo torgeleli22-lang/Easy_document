@@ -1,5 +1,7 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AnalysisProvider } from '@/state/AnalysisContext';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 import { CapturePage } from '@/features/capture/CapturePage';
 import { AnalysisPage } from '@/features/analysis/AnalysisPage';
 import { ResultPage } from '@/features/result/ResultPage';
@@ -13,12 +15,18 @@ export function App() {
   return (
     <AnalysisProvider>
       <HashRouter>
-        <Routes>
-          <Route path="/" element={<CapturePage />} />
-          <Route path="/analysis" element={<AnalysisPage />} />
-          <Route path="/result" element={<ResultPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <div className="app">
+          <SiteHeader />
+          <main className="app__main">
+            <Routes>
+              <Route path="/" element={<CapturePage />} />
+              <Route path="/analysis" element={<AnalysisPage />} />
+              <Route path="/result" element={<ResultPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <SiteFooter />
+        </div>
       </HashRouter>
     </AnalysisProvider>
   );

@@ -1,44 +1,73 @@
 /*
- * 접근성 토큰.
+ * 디자인 토큰.
  *
- * 기획서 3.2·1.6 기준: 큰 글씨가 기본, 고대비, 큰 버튼, 한 화면 한 정보.
- * 가장 어려운 사용자(노약자)가 쓸 수 있는 수준에 맞추면 나머지 모두에게도 편합니다.
- * UI 라이브러리를 쓰지 않는 이유도 이 값들을 직접 통제하기 위해서입니다.
+ * 두 가지를 동시에 만족해야 합니다.
+ *   1. 신뢰감 — 문서를 맡기고 점검받는 서비스라, 색과 활자가 가벼우면 안 됩니다.
+ *      짙은 네이비를 중심으로 쓰고, 채도 높은 색은 위험 표시에만 씁니다.
+ *   2. 접근성 — 기획서 3.2: 큰 글씨가 기본, 고대비, 큰 버튼.
+ *      가장 어려운 사용자(노약자) 기준에 맞추면 나머지 모두에게도 편합니다.
+ *
+ * 색을 바꾸고 싶으면 이 파일만 고치면 화면 전체에 반영됩니다.
  */
 
 :root {
-  /* 글자 — 일반 웹보다 한 단계 크게 잡은 값이 기본입니다 */
-  --font-size-sm: 1.0625rem; /* 17px — 보조 설명 */
-  --font-size-base: 1.25rem; /* 20px — 본문 */
-  --font-size-lg: 1.5rem; /* 24px — 카드 제목 */
-  --font-size-xl: 1.75rem; /* 28px — 화면 제목 */
-  --font-size-2xl: 2.125rem; /* 34px — 한 줄 요약 */
-  --line-height: 1.7;
-  --line-height-tight: 1.4;
+  /* ── 색 ────────────────────────────────────────────────
+     네이비는 관공서·법률 문서에서 오래 쓰여온 색이라,
+     "공적인 것을 다루는 곳"이라는 인상을 별다른 장치 없이 줍니다. */
+  --color-navy-900: #0a2540; /* 헤더 바, 가장 강한 제목 */
+  --color-navy-800: #0f3050;
+  --color-navy-700: #13395f; /* 기본 버튼 */
+  --color-navy-600: #1a4a78;
+  --color-navy-100: #e3ebf3;
+  --color-navy-050: #f1f5f9;
 
-  --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+  --color-bg: #f6f8fa; /* 종이에 가까운 아주 옅은 회청색 */
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f1f4f7;
+
+  --color-text: #0d1b2a; /* 배경 대비 16:1 */
+  --color-text-muted: #4a5a6a; /* 배경 대비 7:1, 보조 설명용 */
+  --color-text-on-dark: #eef3f8;
+  --color-text-on-dark-muted: #a9bed2;
+
+  --color-border: #d3dce5;
+  --color-border-strong: #b3c1cf;
+
+  /* 강조. 링크와 진행 표시에 씁니다 */
+  --color-accent: #1a4a78;
+  --color-accent-soft: #e8f0f7;
+
+  /* 인장(seal) 색. 검토가 끝났다는 표시에만 아껴 씁니다 */
+  --color-seal: #8a6d29;
+  --color-seal-soft: #f7f1e2;
+
+  /* 상태색. 색만으로 뜻을 전하지 않고 항상 글자를 함께 답니다 */
+  --color-danger: #a32b21;
+  --color-danger-soft: #fceeec;
+  --color-warning: #85560f;
+  --color-warning-soft: #fdf3e2;
+  --color-safe: #1b5e43;
+  --color-safe-soft: #e8f3ee;
+
+  /* ── 활자 ──────────────────────────────────────────────
+     본문은 고딕(가독성), 제목과 문서 이름은 명조(문서다움).
+     이 대비가 "웹앱"이 아니라 "서류를 다루는 곳"처럼 읽히게 합니다. */
+  --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     'Malgun Gothic', system-ui, sans-serif;
+  --font-serif: 'Noto Serif KR', 'Apple SD Gothic Neo', 'Batang', serif;
 
-  /* 색 — 본문·배경 대비 13:1 이상 (WCAG AAA 기준인 7:1을 넉넉히 넘김) */
-  --color-bg: #ffffff;
-  --color-surface: #f4f6fa;
-  --color-text: #14161a;
-  --color-text-muted: #4a4f58;
-  --color-border: #c7ccd6;
+  --font-size-xs: 0.875rem; /* 14px — 라벨, 메타 정보 */
+  --font-size-sm: 1rem; /* 16px — 보조 설명 */
+  --font-size-base: 1.1875rem; /* 19px — 본문 */
+  --font-size-lg: 1.375rem; /* 22px — 카드 제목 */
+  --font-size-xl: 1.75rem; /* 28px — 구역 제목 */
+  --font-size-2xl: 2.125rem; /* 34px — 화면 제목 */
+  --font-size-3xl: 2.75rem; /* 44px — 히어로 */
 
-  --color-primary: #1b4dd8;
-  --color-primary-strong: #12379b;
-  --color-on-primary: #ffffff;
+  --line-height: 1.75;
+  --line-height-tight: 1.35;
 
-  /* 위험 등급 — 색만으로 구분하지 않고 항상 아이콘·글자를 함께 씁니다 */
-  --color-danger: #b3261e;
-  --color-danger-bg: #fdecea;
-  --color-warning: #8a5300;
-  --color-warning-bg: #fff4e0;
-  --color-safe: #1b6b3a;
-  --color-safe-bg: #e7f5ec;
-
-  /* 간격 */
+  /* ── 간격 ─────────────────────────────────────────── */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -46,30 +75,33 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
+  --space-8: 4.5rem;
 
-  /* 손가락으로 누를 수 있는 최소 크기. 노약자 기준이라 권장치(44px)보다 키웠습니다 */
-  --touch-target: 3.5rem; /* 56px */
+  /* 손가락으로 누를 수 있는 최소 크기. 권장치(44px)보다 키웠습니다 */
+  --touch-target: 3.5rem;
 
-  --radius: 0.75rem;
-  --radius-lg: 1.25rem;
+  /* 모서리를 거의 주지 않습니다. 둥글수록 서류보다 앱처럼 보입니다 */
+  --radius-sm: 0.25rem;
+  --radius: 0.375rem;
+  --radius-lg: 0.5rem;
 
-  --shadow-card: 0 1px 3px rgb(20 22 26 / 8%), 0 4px 12px rgb(20 22 26 / 6%);
+  --shadow-sm: 0 1px 2px rgb(10 37 64 / 6%);
+  --shadow: 0 1px 3px rgb(10 37 64 / 8%), 0 6px 16px rgb(10 37 64 / 6%);
+  --shadow-lg: 0 2px 6px rgb(10 37 64 / 10%), 0 16px 40px rgb(10 37 64 / 10%);
 
-  /* 키보드 초점 표시 — 절대 지우지 않습니다 */
-  --focus-ring: 3px solid #1b4dd8;
-  --focus-offset: 3px;
+  --focus-ring: 3px solid #1a4a78;
+  --focus-offset: 2px;
 
-  --content-max-width: 40rem;
+  /* 한 줄이 너무 길면 눈이 다음 줄을 못 찾습니다. 본문은 좁게 묶습니다 */
+  --measure: 44rem;
+  --page-width: 68rem;
 }
 
-/*
- * 글자 크기 단계 (기획서 9장 확장 항목).
- * 토큰만 미리 준비해두고, 화면 스위치는 2차에서 붙입니다.
- */
+/* 글자 크기 단계 (기획서 9장 확장 항목). 토큰만 준비해두었습니다 */
 :root[data-text-size='large'] {
-  --font-size-sm: 1.1875rem;
-  --font-size-base: 1.4375rem;
-  --font-size-lg: 1.75rem;
+  --font-size-sm: 1.125rem;
+  --font-size-base: 1.375rem;
+  --font-size-lg: 1.625rem;
   --font-size-xl: 2rem;
   --font-size-2xl: 2.5rem;
   --touch-target: 4rem;

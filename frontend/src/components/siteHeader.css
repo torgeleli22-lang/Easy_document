@@ -1,0 +1,75 @@
+.site-header {
+  background: var(--color-navy-900);
+  color: var(--color-text-on-dark);
+  border-bottom: 3px solid var(--color-navy-600);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 4.5rem;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 서류에 찍는 인장처럼 각진 네모로 둡니다 */
+.site-header__mark {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  border: 2px solid var(--color-text-on-dark);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-serif);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.site-header__name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.site-header__title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.site-header__tagline {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-on-dark-muted);
+}
+
+.site-header__note {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-on-dark-muted);
+}
+
+.site-header__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #4ea87e;
+}
+
+/* 좁은 화면에서는 문구를 빼고 이름만 남깁니다 */
+@media (min-width: 40rem) {
+  .site-header__note {
+    display: flex;
+  }
+}
