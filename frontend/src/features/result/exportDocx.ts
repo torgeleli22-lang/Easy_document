@@ -239,6 +239,7 @@ export async function buildResultDocx(
   const orderedPassages = [...result.passages].sort((a, b) => a.order - b.order);
   for (const passage of orderedPassages) {
     children.push(originalParagraph(d, passage));
+    if (passage.easy) children.push(...noteBox(d, { kind: '쉬운 풀이', text: passage.easy }));
     for (const note of byPassage.get(passage.id) ?? []) {
       children.push(...noteBox(d, note));
     }
