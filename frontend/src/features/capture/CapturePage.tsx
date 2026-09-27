@@ -42,10 +42,12 @@ export function CapturePage() {
   const [pastedText, setPastedText] = useState('');
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files ?? []);
+    // 같은 사진을 다시 골라도 change가 일어나도록 비워 둡니다.
+    event.target.value = '';
+    if (files.length === 0) return;
 
-    start({ kind: 'file', file });
+    start({ kind: 'files', files });
     navigate('/analysis');
   };
 
@@ -83,7 +85,7 @@ export function CapturePage() {
           <div className="intake">
             <div className="intake__header">
               <h2 className="intake__title title">점검 맡기기</h2>
-              <p className="intake__subtitle">사진, PDF, 붙여넣기 모두 됩니다</p>
+              <p className="intake__subtitle">사진은 여러 장을 한 번에 고를 수 있어요</p>
             </div>
 
             <button
@@ -100,6 +102,7 @@ export function CapturePage() {
               className="sr-only"
               accept="image/*,application/pdf"
               capture="environment"
+              multiple
               onChange={handleFileChange}
             />
 

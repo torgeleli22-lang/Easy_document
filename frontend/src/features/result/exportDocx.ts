@@ -159,44 +159,47 @@ function taskTable(d: DocxModule, result: AnalysisResult): Table {
   });
 }
 
-/** 업로드한 사진을 원본 자리에 싣습니다. 워드에 넣을 수 없는 형식은 안내만. */
+/** 업로드한 사진을 원본 자리에 순서대로 싣습니다. 워드에 넣을 수 없는 형식은 안내만. */
 async function originalFileBlocks(
   d: DocxModule,
   input: AnalysisInput | null,
 ): Promise<(Paragraph | Table)[]> {
-  if (!input || input.kind !== 'file') return [];
+  if (!input || input.kind !== 'files') return [];
 
-  const { file } = input;
+  const blocks: (Paragraph | Table)[] = [];
+  for (const file of input.files) {
+    if (file.type.startsWith('image/')) {
+      const data = new Uint8Array(await file.arrayBuffer());
+      blocks.push(
+        new d.Paragraph({
+          children: [
+            new d.ImageRun({
+              data,
+              type: file.type === 'image/png' ? 'png' : 'jpg',
+              // A4 본문 폭에 맞춘 크기. 세로로 긴 문서 사진을 기준으로 잡았습니다.
+              transformation: { width: 440, height: 600 },
+            }),
+          ],
+          alignment: d.AlignmentType.CENTER,
+          spacing: { after: 200 },
+        }),
+      );
+      continue;
+    }
 
-  if (file.type.startsWith('image/')) {
-    const data = new Uint8Array(await file.arrayBuffer());
-    return [
+    blocks.push(
       new d.Paragraph({
         children: [
-          new d.ImageRun({
-            data,
-            type: file.type === 'image/png' ? 'png' : 'jpg',
-            // A4 본문 폭에 맞춘 크기. 세로로 긴 문서 사진을 기준으로 잡았습니다.
-            transformation: { width: 440, height: 600 },
+          new d.TextRun({
+            text: `원본 파일: ${file.name} (이 형식은 워드 안에 넣을 수 없어 따로 보관해 주세요.)`,
+            color: COLOR_MUTED,
           }),
         ],
-        alignment: d.AlignmentType.CENTER,
         spacing: { after: 200 },
       }),
-    ];
+    );
   }
-
-  return [
-    new d.Paragraph({
-      children: [
-        new d.TextRun({
-          text: `원본 파일: ${file.name} (이 형식은 워드 안에 넣을 수 없어 따로 보관해 주세요.)`,
-          color: COLOR_MUTED,
-        }),
-      ],
-      spacing: { after: 200 },
-    }),
-  ];
+  return blocks;
 }
 
 export async function buildResultDocx(

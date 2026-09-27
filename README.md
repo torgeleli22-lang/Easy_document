@@ -10,8 +10,8 @@
 | --- | --- |
 | `frontend/` | React + Vite. GitHub Pages로 배포되는 정적 화면 |
 | `shared/schemas/` | 분석 결과 스키마. 프런트엔드와 백엔드가 함께 쓰는 단일 출처 |
-| `backend/` | AWS Lambda (예정) |
-| `infra/` | IaC (예정, 도구 미정) |
+| `backend/` | AWS Lambda. 사진 업로드 주소 발급과 Bedrock(Claude) 문서 분석 |
+| `infra/` | AWS SAM 설정. 서버 올리는 방법은 `infra/README.md` |
 | `eval/` | 평가 세트와 지표 측정 (예정) |
 
 ## 개발
@@ -22,8 +22,22 @@ npm install
 npm run dev
 ```
 
-지금은 백엔드가 없어서 목업 데이터로 동작합니다. 파일을 고르거나 글을 붙여넣으면
-근로계약서 분석 결과가 스트리밍되는 것처럼 보입니다.
+`frontend/.env.production`(또는 `.env.local`)에 `VITE_API_URL`로 서버 주소를 넣으면 실제 서버에,
+비어 있으면 목업 데이터에 연결됩니다. 목업에서는 무엇을 올려도 근로계약서 분석 결과가 나옵니다.
+
+### 백엔드
+
+```bash
+cd backend
+npm install
+npm run typecheck
+npm test
+```
+
+- 글을 붙여넣으면 서버가 문단으로 나눠 원문을 정하고, Claude가 그 문단을 가리키며 결과를 만듭니다.
+- 사진은 브라우저에서 줄인 뒤 S3에 직접 올리고, Claude가 글자를 옮겨 적어 원문을 만든 다음 분석합니다.
+  사진은 읽은 직후 지웁니다.
+- 두 경우 모두 AI가 인용한 문장이 원문에 실제로 있는지 확인하고, 없으면 그 항목을 뺍니다.
 
 결과 화면에서 워드(.docx) 파일을 내려받을 수 있습니다. 원본을 문서에 싣고
 원문 문단 바로 아래에 설명 박스를 붙이는 구조이며, 파일은 전부 브라우저 안에서
