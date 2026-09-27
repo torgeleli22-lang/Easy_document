@@ -25,6 +25,15 @@ export type SourceKind = 'document' | 'general_guide';
 
 export type WarningLevel = 'high' | 'medium' | 'low';
 
+/** 사진 속 구간 위치. 가로 좌표는 쓰지 않고 세로 띠로만 표시합니다 */
+export interface PassageRegion {
+  /** 몇 번째 사진인지 (0부터, 사용자가 고른 순서) */
+  image_index: number;
+  /** 사진 높이를 1로 볼 때 이 구간이 시작하는 위치와 끝나는 위치 (0~1) */
+  top: number;
+  bottom: number;
+}
+
 /**
  * 원문 한 구간 (대체로 문단 하나).
  *
@@ -39,6 +48,10 @@ export interface Passage {
   text: string;
   /** 문서 안에서의 순서. 원본 순서대로 싣기 위해 씁니다 */
   order: number;
+  /** 이 구간을 쉬운 말로 푼 설명 (한두 문장) */
+  easy?: string;
+  /** 사진 입력일 때 이 구간이 사진 어디쯤인지. 글 입력이면 생략 */
+  region?: PassageRegion | null;
 }
 
 export interface Task {

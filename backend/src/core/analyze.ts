@@ -11,7 +11,7 @@ import {
   TEXT_MODE_INSTRUCTIONS,
   TEXT_MODE_TOOL,
 } from './prompt';
-import { normalizeResult, normalizeTranscribedPassages } from './validate';
+import { attachPassageNotes, normalizeResult, normalizeTranscribedPassages } from './validate';
 import { verifyEvidence } from './verify';
 
 /**
@@ -156,7 +156,7 @@ export async function analyzeDocument(
 
   if (request.kind === 'images') {
     const readable = (raw as { readable?: unknown }).readable;
-    passages = normalizeTranscribedPassages(raw);
+    passages = normalizeTranscribedPassages(raw, request.images.length);
     if (readable === false || passages.length === 0) {
       const reason = (raw as { unreadable_reason?: unknown }).unreadable_reason;
       throw new AnalysisError(
@@ -167,6 +167,8 @@ export async function analyzeDocument(
       );
     }
   }
+
+  if (request.kind === 'text') passages = attachPassageNotes(raw, passages);
 
   const { result, report } = verifyEvidence(normalizeResult(raw), passages);
   if (report.dropped > 0 || report.relinked > 0) {

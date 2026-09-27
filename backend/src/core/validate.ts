@@ -3,6 +3,7 @@ import type {
   Category,
   DeadlineKind,
   Passage,
+  PassageRegion,
   SourceKind,
   Task,
   Term,
@@ -107,8 +108,36 @@ export function normalizeResult(raw: unknown): Omit<AnalysisResult, 'passages'> 
   };
 }
 
+/** 사진 속 위치. 값이 이상하면 위치 없이 둡니다(화면은 띠 표시만 생략) */
+function region(item: Raw, imageCount: number): PassageRegion | null {
+  const { image_index: index, top, bottom } = item;
+  if (typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index >= imageCount) {
+    return null;
+  }
+  if (typeof top !== 'number' || typeof bottom !== 'number') return null;
+  const clampedTop = Math.min(1, Math.max(0, top));
+  const clampedBottom = Math.min(1, Math.max(0, bottom));
+  if (clampedBottom <= clampedTop) return null;
+  return { image_index: index, top: clampedTop, bottom: clampedBottom };
+}
+
+/** 글 입력: 서버가 나눈 구간에 AI가 쓴 구간별 풀이를 붙입니다 */
+export function attachPassageNotes(raw: unknown, passages: Passage[]): Passage[] {
+  const notes = new Map<string, string>();
+  if (isObject(raw)) {
+    for (const note of list(raw.passage_notes)) {
+      const easy = str(note.easy);
+      if (easy) notes.set(str(note.id), easy);
+    }
+  }
+  return passages.map((passage) => {
+    const easy = notes.get(passage.id);
+    return easy ? { ...passage, easy } : passage;
+  });
+}
+
 /** 사진 입력에서 AI가 옮겨 적은 원문 구간을 검사합니다 */
-export function normalizeTranscribedPassages(raw: unknown): Passage[] {
+export function normalizeTranscribedPassages(raw: unknown, imageCount: number): Passage[] {
   if (!isObject(raw)) return [];
   const seen = new Set<string>();
   const passages: Passage[] = [];
@@ -120,7 +149,14 @@ export function normalizeTranscribedPassages(raw: unknown): Passage[] {
     // id가 비었거나 겹치면 순서대로 새로 붙입니다. 항목의 참조는 인용 확인에서 다시 맞춥니다.
     if (!id || seen.has(id)) id = `p${passages.length + 1}`;
     seen.add(id);
-    passages.push({ id, text, order: passages.length + 1 });
+    const easy = str(item.easy);
+    passages.push({
+      id,
+      text,
+      order: passages.length + 1,
+      ...(easy ? { easy } : {}),
+      region: region(item, imageCount),
+    });
   }
   return passages;
 }

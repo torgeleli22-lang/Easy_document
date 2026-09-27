@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { splitIntoPassages } from '../src/core/passages';
-import { normalizeResult, normalizeTranscribedPassages } from '../src/core/validate';
+import { attachPassageNotes, normalizeResult, normalizeTranscribedPassages } from '../src/core/validate';
 import { verifyEvidence } from '../src/core/verify';
 
 test('빈 줄로 문단을 나누고 순서대로 id를 붙인다', () => {
@@ -95,15 +95,32 @@ test('요약이 없으면 오류', () => {
 });
 
 test('옮겨 적은 원문의 빈 구간을 버리고 겹치는 id를 새로 붙인다', () => {
-  const result = normalizeTranscribedPassages({
-    passages: [
-      { id: 'p1', text: '가' },
-      { id: 'p1', text: '나' },
-      { id: 'p3', text: ' ' },
-    ],
-  });
+  const result = normalizeTranscribedPassages(
+    {
+      passages: [
+        { id: 'p1', text: '가', easy: '풀이', image_index: 0, top: 0.1, bottom: 0.2 },
+        { id: 'p1', text: '나', image_index: 5, top: 0.1, bottom: 0.2 },
+        { id: 'p3', text: ' ' },
+      ],
+    },
+    2,
+  );
   assert.deepEqual(
     result.map((passage) => passage.id),
     ['p1', 'p2'],
   );
+  assert.equal(result[0].easy, '풀이');
+  assert.deepEqual(result[0].region, { image_index: 0, top: 0.1, bottom: 0.2 });
+  // 없는 사진 번호를 가리키면 위치를 버립니다.
+  assert.equal(result[1].region, null);
+  assert.equal('easy' in result[1], false);
+});
+
+test('글 입력의 구간별 풀이를 id로 붙인다', () => {
+  const result = attachPassageNotes(
+    { passage_notes: [{ id: 'p2', easy: '25일에 월급을 받아요' }, { id: 'p9', easy: '없는 구간' }] },
+    passages,
+  );
+  assert.equal(result[0].easy, undefined);
+  assert.equal(result[1].easy, '25일에 월급을 받아요');
 });
