@@ -3,6 +3,8 @@ import { daysUntil, formatDate, formatDday } from '@/lib/date';
 
 interface Props {
   tasks: Task[];
+  /** 기한 재확인 안내를 목록 아래에 붙일지. 한 화면에 한 번만 보이게 합니다 */
+  showNote?: boolean;
 }
 
 /** 남은 기간에 따라 표시를 다르게 합니다. 색만이 아니라 날짜도 늘 함께 적습니다. */
@@ -17,7 +19,7 @@ function ddayTone(isoDate: string): 'danger' | 'warning' | 'neutral' {
  * 해야 할 일과 기한. 임박한 순으로 정렬합니다 (기획서 FR-5).
  * 기한이 없거나 불분명한 항목은 뒤로 보냅니다.
  */
-export function TasksCard({ tasks }: Props) {
+export function TasksCard({ tasks, showNote = true }: Props) {
   const sorted = [...tasks].sort((a, b) => {
     if (a.deadline && b.deadline) return daysUntil(a.deadline) - daysUntil(b.deadline);
     if (a.deadline) return -1;
@@ -59,7 +61,7 @@ export function TasksCard({ tasks }: Props) {
         ))}
       </ol>
 
-      <p className="note">실제 기한은 문서에 적힌 기관에 한 번 더 확인해 주세요.</p>
+      {showNote && <p className="note">실제 기한은 문서에 적힌 기관에 한 번 더 확인해 주세요.</p>}
     </>
   );
 }
