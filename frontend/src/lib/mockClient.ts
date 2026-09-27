@@ -1,6 +1,7 @@
 import type { AnalysisResult } from '@shared/schemas/result';
 import type { AnalysisClient, AnalysisEvent, AnalysisInput } from './analysisClient';
 import { laborContractResult, laborContractNarration } from '@/mocks/laborContract';
+import { filesOf } from '@/features/result/source';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -115,16 +116,18 @@ function fitMockToInput(result: AnalysisResult, input: AnalysisInput): AnalysisR
     };
   }
 
-  if (input.file.type.startsWith('image/')) {
-    const count = result.passages.length;
+  const images = filesOf(input).filter((file) => file.type.startsWith('image/'));
+  if (images.length > 0) {
+    // 구간을 사진마다 고르게 나눠 싣습니다
+    const perImage = Math.ceil(result.passages.length / images.length);
     return {
       ...result,
       passages: result.passages.map((passage, index) => ({
         ...passage,
         region: {
-          image_index: 0,
-          top: 0.1 + (0.8 * index) / count,
-          bottom: 0.1 + (0.8 * (index + 1)) / count,
+          image_index: Math.floor(index / perImage),
+          top: 0.1 + (0.8 * (index % perImage)) / perImage,
+          bottom: 0.1 + (0.8 * ((index % perImage) + 1)) / perImage,
         },
       })),
     };

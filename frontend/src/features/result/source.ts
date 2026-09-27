@@ -12,11 +12,24 @@ export type SourceView =
   | { kind: 'images'; files: File[] }
   | { kind: 'transcript'; fileName: string | null };
 
+/**
+ * 입력에 담긴 파일 목록. 사진 여러 장을 받는 형태({ files })와 예전 한 장 형태({ file })를
+ * 모두 받아, 백엔드 연결 작업과 어느 쪽이 먼저 합쳐져도 동작하게 합니다.
+ */
+export function filesOf(input: AnalysisInput): File[] {
+  const loose = input as unknown as { file?: File; files?: File[] };
+  return loose.files ?? (loose.file ? [loose.file] : []);
+}
+
 export function sourceFromInput(input: AnalysisInput | null): SourceView {
   if (!input) return { kind: 'transcript', fileName: null };
   if (input.kind === 'text') return { kind: 'text', text: input.text };
-  if (input.file.type.startsWith('image/')) return { kind: 'images', files: [input.file] };
-  return { kind: 'transcript', fileName: input.file.name };
+
+  const files = filesOf(input);
+  if (files.length > 0 && files.every((file) => file.type.startsWith('image/'))) {
+    return { kind: 'images', files };
+  }
+  return { kind: 'transcript', fileName: files[0]?.name ?? null };
 }
 
 /** 원문을 구간 단위로 자른 조각. passageId가 없으면 풀이가 붙지 않은 부분입니다 */
