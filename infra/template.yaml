@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  쉬운말 백엔드 1차. Lambda Function URL 하나로 사진 업로드 주소 발급과
+  문서 분석(Bedrock Claude)을 처리합니다. 사진은 S3에 잠깐 두었다가 분석 직후 지웁니다.
+
+Parameters:
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Default: https://torgeleli22-lang.github.io,http://localhost:5173
+    Description: 이 주소에서 연 화면만 서버를 부를 수 있습니다 (끝에 / 없이)
+  ModelId:
+    Type: String
+    Default: anthropic.claude-opus-5
+    Description: 분석에 쓸 Claude 모델
+  FallbackModelId:
+    Type: String
+    Default: anthropic.claude-opus-4-8
+    Description: 기본 모델이 답을 거절했을 때 한 번 더 시도할 모델 (비우면 재시도 안 함)
+  BudgetEmail:
+    Type: String
+    Default: ''
+    Description: 한 달 사용 금액이 예산을 넘으면 알림을 받을 이메일 (비우면 알림을 만들지 않음)
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 10
+    Description: 한 달 예산 (미국 달러)
+
+Conditions:
+  HasBudgetEmail: !Not [!Equals [!Ref BudgetEmail, '']]
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]
+
+Resources:
+  # 사진 임시 보관함. 공개 접근을 모두 막고, 남은 사진은 하루 뒤 자동 삭제합니다.
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: delete-leftover-uploads
+            Status: Enabled
+            Prefix: uploads/
+            ExpirationInDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+      # 브라우저가 업로드 주소로 사진을 직접 올릴 수 있게 허용합니다.
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [POST]
+            AllowedOrigins: !Ref AllowedOrigins
+            AllowedHeaders: ['*']
+            MaxAge: 3000
+
+  AnalyzeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend
+      Handler: handler.handler
+      MemorySize: 1024
+      # 사진 여러 장을 옮겨 적고 분석하면 1~2분 걸릴 수 있어 넉넉히 둡니다.
+      Timeout: 300
+      Environment:
+        Variables:
+          UPLOAD_BUCKET: !Ref UploadBucket
+          ALLOWED_ORIGINS: !Join [',', !Ref AllowedOrigins]
+          MODEL_ID: !Ref ModelId
+          FALLBACK_MODEL_ID: !Ref FallbackModelId
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref UploadBucket
+        - Statement:
+            - Effect: Allow
+              Action: bedrock-mantle:CreateInference
+              Resource: '*'
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: BUFFERED
+        Cors:
+          AllowOrigins: !Ref AllowedOrigins
+          AllowMethods: [POST]
+          AllowHeaders: [content-type]
+          MaxAge: 3600
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Format: esm
+        Target: es2022
+        Minify: true
+        EntryPoints:
+          - src/handler.ts
+        OutExtension:
+          - .js=.mjs
+        # 번들 안의 CommonJS 코드가 require를 쓸 수 있게 합니다.
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+
+  # 로그는 2주만 보관합니다. 문서 내용은 로그에 남기지 않습니다.
+  AnalyzeFunctionLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AnalyzeFunction}
+      RetentionInDays: 14
+
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Condition: HasBudgetEmail
+    Properties:
+      Budget:
+        BudgetName: !Sub ${AWS::StackName}-monthly
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref BudgetEmail
+        - Notification:
+            NotificationType: FORECASTED
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref BudgetEmail
+
+Outputs:
+  ApiUrl:
+    Description: 화면(frontend/.env.production의 VITE_API_URL)에 넣을 서버 주소
+    Value: !GetAtt AnalyzeFunctionUrl.FunctionUrl

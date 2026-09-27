@@ -1,0 +1,13 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "easy-document-backend"
+region = "ap-northeast-2"
+
+[default.build.parameters]
+template_file = "template.yaml"
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = false

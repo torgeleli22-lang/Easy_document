@@ -7,3 +7,4 @@ dist/
 *.log
 .aws-sam/
 *.tsbuildinfo
+.test-build/

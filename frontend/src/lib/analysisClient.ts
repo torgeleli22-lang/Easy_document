@@ -3,8 +3,8 @@ import type { AnalysisResult, Category } from '@shared/schemas/result';
 /**
  * 분석 클라이언트 인터페이스.
  *
- * 지금은 목업 구현(mockClient.ts)만 있고, 백엔드가 준비되면
- * 같은 인터페이스의 WebSocket 구현(socket.ts)으로 갈아끼웁니다.
+ * 목업 구현(mockClient.ts)과 실제 서버 구현(httpClient.ts)이 있고,
+ * client.ts가 설정에 따라 하나를 고릅니다.
  * 화면 쪽 코드는 어느 구현인지 알 필요가 없습니다.
  */
 
@@ -23,7 +23,8 @@ export type AnalysisEvent =
   | { type: 'error'; message: string };
 
 export type AnalysisInput =
-  | { kind: 'file'; file: File }
+  /** 사진 여러 장(한 문서를 순서대로 찍은 것) 또는 PDF 한 개 */
+  | { kind: 'files'; files: File[] }
   | { kind: 'text'; text: string };
 
 export interface AnalysisClient {
