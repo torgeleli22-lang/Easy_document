@@ -32,3 +32,31 @@ export function formatDate(isoDate: string): string {
   const date = new Date(`${isoDate}T00:00:00`);
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
+
+/** Date → "2026-11-27" (기기 시간대 기준) */
+export function toIso(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** 오늘 날짜 "YYYY-MM-DD" */
+export function todayIso(): string {
+  return toIso(new Date());
+}
+
+/** "11월 30일 (월)" — 일정 목록용 짧은 표기 */
+export function formatShortDate(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00`);
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${weekday})`;
+}
+
+/** 저장 시각을 "오늘", "어제", "3일 전", "2026년 10월 5일"처럼 */
+export function formatAgo(isoDateTime: string, now: Date = new Date()): string {
+  const days = -daysUntil(toIso(new Date(isoDateTime)), now);
+  if (days <= 0) return '오늘';
+  if (days === 1) return '어제';
+  if (days < 30) return `${days}일 전`;
+  return formatDate(toIso(new Date(isoDateTime)));
+}

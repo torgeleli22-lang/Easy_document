@@ -93,15 +93,37 @@ export interface Warning {
   source_kind: SourceKind;
 }
 
+/** 확신도가 낮을 때 사용자에게 "이 문서가 무엇인가요?"라고 물을 후보 */
+export interface DocTypeCandidate {
+  doc_type: string;
+  category: Category;
+}
+
+/** 이 아래로 확신도가 떨어지면 후보를 보여주고 사용자에게 묻습니다 (평가 후 조정) */
+export const CONFIDENCE_THRESHOLD = 0.7;
+
 export interface AnalysisResult {
   /** 표시 라벨 — 문서에 적힌 실제 명칭을 그대로 (예: "임용계약서") */
   doc_type: string;
   /** 내부 처리 카테고리 */
   category: Category;
-  /** 0~1. 낮으면 후보 라벨을 물어봅니다 (임계값은 평가 후 확정) */
+  /** 0~1. 낮으면 후보 라벨을 물어봅니다 (CONFIDENCE_THRESHOLD) */
   confidence: number;
+  /** 확신도가 낮을 때 물어볼 후보. 첫 번째가 가장 그럴듯한 것 */
+  candidates: DocTypeCandidate[];
   /** 문서가 무엇이고 나에게 무엇을 요구하는지 한 줄 요약 */
   summary: string;
+  /**
+   * 나중에 보관함에서 찾을 때 쓸 핵심어 3~8개 (기관명, 제도명, 대상 등).
+   * 일정 화면에서도 기한 옆에 붙여 무슨 일인지 바로 알아보게 합니다.
+   */
+  keywords: string[];
+  /**
+   * 문서 전체를 옮겨 적은 글. 보관함 검색에 씁니다.
+   * 주민등록번호·전화번호 같은 개인 식별 정보는 AI 단계에서 이미 가려져 오고,
+   * 저장 직전에 브라우저에서 한 번 더 가립니다.
+   */
+  full_text: string;
   /**
    * 원문 구간 목록. 결과 화면의 원본·풀이 연결과,
    * 워드 내보내기에서 구간 아래에 설명을 붙일 때 씁니다.

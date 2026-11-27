@@ -1,0 +1,22 @@
+{
+  "name": "easy-document-backend",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx src/devServer.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
+    "package": "npm run build && cd dist && zip -q -r ../function.zip index.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.11",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "type": "module"
+}
