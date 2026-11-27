@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnalysis } from '@/state/AnalysisContext';
 import type { Stage } from '@/lib/analysisClient';
 import { withRo } from '@/lib/korean';
+import { DocTypeChooser } from './DocTypeChooser';
 import './analysis.css';
 
 /** 사용자에게 보여줄 점검 단계 (기획서 FR-18) */
@@ -23,17 +24,35 @@ const stageOrder: Stage[] = ['uploading', 'classifying', 'analyzing', 'verifying
  */
 export function AnalysisPage() {
   const navigate = useNavigate();
-  const { started, stage, statusMessage, label, narration, result, error } = useAnalysis();
+  const {
+    started,
+    stage,
+    statusMessage,
+    label,
+    narration,
+    result,
+    error,
+    needsConfirmation,
+    chooseDocType,
+    keepDocType,
+  } = useAnalysis();
+  // 사용자가 "다른 문서예요"를 눌러 종류를 고치려는 중인지
+  const [choosing, setChoosing] = useState(false);
 
   // 새로고침 등으로 상태가 없으면 첫 화면으로 돌려보냅니다.
   useEffect(() => {
     if (!started) navigate('/', { replace: true });
   }, [started, navigate]);
 
-  // 검증까지 끝나면 결과 화면으로 넘어갑니다.
+  // 검증까지 끝나면 결과 화면으로 넘어갑니다. 종류를 물어봐야 하면 답을 기다립니다.
   useEffect(() => {
-    if (result) navigate('/result', { replace: true });
-  }, [result, navigate]);
+    if (result && !needsConfirmation && !choosing) navigate('/result', { replace: true });
+  }, [result, needsConfirmation, choosing, navigate]);
+
+  const handleChoose = (candidate: Parameters<typeof chooseDocType>[0]) => {
+    setChoosing(false);
+    chooseDocType(candidate);
+  };
 
   const currentIndex = stageOrder.indexOf(stage);
 
@@ -70,14 +89,29 @@ export function AnalysisPage() {
             </p>
           </div>
 
-          {label && (
+          {(needsConfirmation || choosing) && (
+            <DocTypeChooser
+              candidates={result?.candidates ?? []}
+              current={label?.docType}
+              reason={needsConfirmation ? 'low-confidence' : 'user'}
+              onChoose={handleChoose}
+              onKeep={needsConfirmation ? keepDocType : undefined}
+              onClose={choosing && !needsConfirmation ? () => setChoosing(false) : undefined}
+            />
+          )}
+
+          {label && !needsConfirmation && !choosing && (
             <section className="identified" aria-live="polite">
               <div className="identified__text">
                 <span className="eyebrow">확인된 문서</span>
                 <h2 className="identified__name title">{label.docType}</h2>
                 <p className="meta">{withRo(label.docType)} 보고 점검을 진행합니다</p>
               </div>
-              <button type="button" className="button button--secondary">
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() => setChoosing(true)}
+              >
                 다른 문서예요
               </button>
             </section>

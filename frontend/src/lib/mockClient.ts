@@ -1,15 +1,119 @@
-import type { AnalysisResult } from '@shared/schemas/result';
+import type { AnalysisResult, DocTypeCandidate } from '@shared/schemas/result';
 import type { AnalysisClient, AnalysisEvent, AnalysisInput } from './analysisClient';
-import { laborContractResult, laborContractNarration } from '@/mocks/laborContract';
+import {
+  laborContractResult,
+  laborContractNarration,
+  laborContractText,
+} from '@/mocks/laborContract';
+import { buildDepartmentNotice } from '@/mocks/departmentNotice';
 import { filesOf } from '@/features/result/source';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** 확신도가 낮은 문서에서 물어볼 후보 */
+const GENERIC_CANDIDATES: DocTypeCandidate[] = [
+  { doc_type: '안내문·공문', category: 'notice' },
+  { doc_type: '계약서', category: 'contract' },
+  { doc_type: '증명서·설명서', category: 'informational' },
+];
+
+/**
+ * 입력과 사용자가 고른 종류를 보고 어떤 목업을 보여줄지 정합니다.
+ *   - 근로계약서 예시 글 → 근로계약서
+ *   - 공문·안내 같은 낱말이 든 글 → 학과 공문 (기한이 오늘 기준이라 일정 화면 확인용)
+ *   - 그 밖의 글 → 확신도를 낮춰서 "어떤 문서인가요?" 질문 화면을 확인할 수 있게
+ *   - 종류를 골라 다시 점검하면 → 그 종류에 맞는 목업
+ */
+function pickScenario(input: AnalysisInput, hint?: DocTypeCandidate) {
+  const notice = buildDepartmentNotice();
+  const labor = { result: laborContractResult, narration: laborContractNarration };
+
+  if (hint) {
+    if (hint.category === 'contract') return relabel(labor, hint);
+    if (hint.category === 'notice') return relabel(notice, hint);
+    return relabel(referenceScenario(input), hint);
+  }
+
+  if (input.kind === 'file') return labor;
+  if (input.text.includes(laborContractText.slice(0, 20)) || /근로계약/.test(input.text))
+    return labor;
+  if (/공문|안내|제출|마감|성적/.test(input.text)) return notice;
+
+  return {
+    narration:
+      '문서를 읽어 봤는데, 어떤 종류인지 확실하지 않아요. 아래에서 골라 주시면 그에 맞게 다시 점검할게요.',
+    result: {
+      ...laborContractResult,
+      doc_type: '종류를 알 수 없는 문서',
+      category: 'unknown' as const,
+      confidence: 0.48,
+      candidates: GENERIC_CANDIDATES,
+      keywords: guessKeywords(input.text),
+      full_text: input.text,
+    },
+  };
+}
+
+function relabel(scenario: { result: AnalysisResult; narration: string }, hint: DocTypeCandidate) {
+  return {
+    narration: scenario.narration,
+    result: {
+      ...scenario.result,
+      doc_type: hint.doc_type,
+      category: hint.category,
+      confidence: 1,
+      candidates: [],
+    },
+  };
+}
+
+/** 해야 할 일이 없는 참고용 문서 (증명서·설명서) */
+function referenceScenario(input: AnalysisInput) {
+  const text = input.kind === 'text' ? input.text : laborContractText;
+  const paragraphs = text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+
+  const result: AnalysisResult = {
+    ...laborContractResult,
+    summary: '(목업) 해야 할 일은 없는 참고용 문서예요. 보관해 두면 나중에 다시 찾아볼 수 있어요.',
+    keywords: guessKeywords(text),
+    full_text: text,
+    passages: paragraphs.map((paragraph, index) => ({
+      id: `p${index + 1}`,
+      order: index + 1,
+      text: paragraph,
+      easy: '(목업) 이 문단을 쉬운 말로 풀어 쓴 설명이 여기에 들어갑니다.',
+    })),
+    tasks: [],
+    terms: [],
+    warnings: [],
+  };
+  return {
+    result,
+    narration: '참고용 문서예요. 해야 할 일이나 기한은 없고, 내용을 쉬운 말로 풀어 드릴게요.',
+  };
+}
+
+/** 목업용 핵심어 — 두 글자 이상 한글 낱말 중 자주 나온 것 */
+function guessKeywords(text: string): string[] {
+  const counts = new Map<string, number>();
+  for (const word of text.match(/[가-힣]{2,}/g) ?? []) {
+    counts.set(word, (counts.get(word) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || b[0].length - a[0].length)
+    .slice(0, 5)
+    .map(([word]) => word);
+}
+
 /**
  * 백엔드 없이 화면을 완성하기 위한 목업 클라이언트.
  *
- * 진짜 WebSocket 구현과 타이밍을 비슷하게 흉내 냅니다.
- * 요약 텍스트를 한 조각씩 흘려보내므로, 스트리밍 화면이
+ * 실제 백엔드 호출과 타이밍을 비슷하게 흉내 냅니다.
+ * 설명 텍스트를 한 조각씩 흘려보내므로, 스트리밍 화면이
  * 실제 응답에서도 그대로 동작하는지 미리 확인할 수 있습니다.
  */
 export function createMockAnalysisClient(): AnalysisClient {
@@ -20,44 +124,41 @@ export function createMockAnalysisClient(): AnalysisClient {
       cancelled = true;
     },
 
-    async analyze(input: AnalysisInput, onEvent: (event: AnalysisEvent) => void) {
+    async analyze(input, onEvent, options) {
       cancelled = false;
+      const scenario = pickScenario(input, options?.docTypeHint);
 
       const emit = (event: AnalysisEvent) => {
         if (!cancelled) onEvent(event);
       };
 
-      // 1. 업로드 (실제로는 presigned URL로 S3에 직접 업로드)
       emit({ type: 'progress', stage: 'uploading', message: '문서를 올리고 있어요' });
       await sleep(600);
       if (cancelled) return;
 
-      // 2. 라우터(경량 모델)가 표시 라벨과 처리 카테고리를 판단
       emit({ type: 'progress', stage: 'classifying', message: '어떤 문서인지 확인하고 있어요' });
       await sleep(900);
       if (cancelled) return;
 
       emit({
         type: 'label',
-        docType: laborContractResult.doc_type,
-        category: laborContractResult.category,
-        confidence: laborContractResult.confidence,
+        docType: scenario.result.doc_type,
+        category: scenario.result.category,
+        confidence: scenario.result.confidence,
       });
 
-      // 3. 본 분석 스트리밍 — 멀티모달 모델이 토큰 단위로 흘려보내는 부분
       emit({ type: 'progress', stage: 'analyzing', message: '내용을 읽고 쉬운 말로 풀고 있어요' });
-      for (const chunk of chunkText(laborContractNarration)) {
-        await sleep(45);
+      for (const chunk of chunkText(scenario.narration)) {
+        await sleep(30);
         if (cancelled) return;
         emit({ type: 'delta', text: chunk });
       }
 
-      // 4. 검증 — 인용 존재 확인, 날짜·금액 교차 검증
       emit({ type: 'progress', stage: 'verifying', message: '숫자와 근거를 확인하고 있어요' });
-      await sleep(800);
+      await sleep(700);
       if (cancelled) return;
 
-      emit({ type: 'result', result: fitMockToInput(laborContractResult, input) });
+      emit({ type: 'result', result: fitMockToInput(scenario.result, input) });
       emit({ type: 'progress', stage: 'done', message: '다 됐어요' });
     },
   };

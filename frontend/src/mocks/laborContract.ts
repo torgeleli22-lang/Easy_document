@@ -45,7 +45,11 @@ export const laborContractResult: AnalysisResult = {
   doc_type: '근로계약서',
   category: 'contract',
   confidence: 0.93,
-  summary: '이 회사에서 일하는 조건을 정한 계약서예요. 서명하기 전에 급여와 수습 조건을 꼭 확인하세요.',
+  candidates: [],
+  summary:
+    '이 회사에서 일하는 조건을 정한 계약서예요. 서명하기 전에 급여와 수습 조건을 꼭 확인하세요.',
+  keywords: ['근로계약서', '주식회사 한빛', '수습기간', '임금', '연차휴가', '사무 보조'],
+  full_text: laborContractText,
 
   // 원문 구간. 워드로 내려받을 때 이 순서대로 싣고 아래에 설명을 붙입니다.
   passages: [

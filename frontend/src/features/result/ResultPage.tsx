@@ -14,6 +14,8 @@ import { sourceFromInput } from './source';
 import { useActivePassage } from './useActivePassage';
 import { buildShareText } from './shareText';
 import { downloadResultDocx } from './exportDocx';
+import { SavePanel } from './SavePanel';
+import { downloadIcs } from '@/lib/ics';
 import './result.css';
 
 /** 결과서 머리글에 찍는 점검 일시 */
@@ -61,6 +63,7 @@ export function ResultPage() {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState(false);
+  const [showSave, setShowSave] = useState(false);
 
   const explainRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<HTMLDivElement>(null);
@@ -119,6 +122,26 @@ export function ResultPage() {
     }
   };
 
+  const datedTasks = result.tasks.filter((task) => task.deadline);
+
+  const handleCalendar = () => {
+    downloadIcs(
+      datedTasks.map((task, index) => ({
+        uid: `${result.doc_type}-${task.deadline}-${index}`,
+        date: task.deadline!,
+        title: task.action,
+        description: [
+          `${result.doc_type}`,
+          task.if_missed,
+          task.evidence && `근거: ${task.evidence}`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      })),
+      `${result.doc_type} 기한.ics`,
+    );
+  };
+
   const handleFinish = () => {
     reset();
     navigate('/', { replace: true });
@@ -138,6 +161,15 @@ export function ResultPage() {
           <div className="report__heading">
             <span className="eyebrow">점검 결과서</span>
             <h1 className="report__doc-type title">{result.doc_type}</h1>
+            {result.keywords.length > 0 && (
+              <ul className="keyword-list" aria-label="핵심어">
+                {result.keywords.map((keyword) => (
+                  <li key={keyword} className="keyword">
+                    {keyword}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <dl className="report__facts">
@@ -160,6 +192,19 @@ export function ResultPage() {
           <button
             type="button"
             className="button button--primary"
+            onClick={() => setShowSave(true)}
+            aria-expanded={showSave}
+          >
+            보관함에 저장
+          </button>
+          {datedTasks.length > 0 && (
+            <button type="button" className="button button--secondary" onClick={handleCalendar}>
+              휴대폰 달력에 추가
+            </button>
+          )}
+          <button
+            type="button"
+            className="button button--secondary"
             onClick={handleDownload}
             disabled={downloading}
           >
@@ -169,7 +214,8 @@ export function ResultPage() {
             가족에게 보내기
           </button>
           <p className="result-actions__hint">
-            워드 파일에는 원본과 설명이 함께 담기고, 가족에게는 요약만 전달됩니다.
+            보관하면 기한이 일정에 모이고 나중에 다시 찾아볼 수 있어요. 워드 파일에는 원본과 설명이
+            함께 담기고, 가족에게는 요약만 전달됩니다.
           </p>
           {downloadError && (
             <p className="result-actions__error" role="alert">
@@ -181,6 +227,8 @@ export function ResultPage() {
           </p>
         </div>
       </header>
+
+      {showSave && <SavePanel result={result} onClose={() => setShowSave(false)} />}
 
       <div className="compare">
         <div ref={sourceRef} className="compare__source">

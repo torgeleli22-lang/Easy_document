@@ -1,7 +1,16 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnalysis } from '@/state/AnalysisContext';
+import { isMockMode } from '@/lib/client';
+import { laborContractText } from '@/mocks/laborContract';
+import { buildDepartmentNotice } from '@/mocks/departmentNotice';
 import './capture.css';
+
+/** 백엔드 없이도 흐름을 끝까지 볼 수 있게 붙여넣을 예시 문서 */
+const EXAMPLES = [
+  { label: '학과 공문 (마감 여러 개)', text: () => buildDepartmentNotice().text },
+  { label: '근로계약서', text: () => laborContractText },
+];
 
 /** 점검 절차 안내. 맡기기 전에 무슨 일이 일어나는지 먼저 보여줍니다 */
 const STEPS = [
@@ -17,8 +26,8 @@ const STEPS = [
   },
   {
     number: '03',
-    title: '결과를 받습니다',
-    body: '쉬운 말로 정리된 점검 결과를 보고, 워드 파일로 받거나 가족에게 보낼 수 있습니다.',
+    title: '보관하고 일정으로 챙깁니다',
+    body: '보관함에 저장하면 기한이 일정 달력에 모이고, 나중에 낱말 하나로 다시 찾아볼 수 있어요.',
   },
 ];
 
@@ -26,7 +35,10 @@ const STEPS = [
 const SCOPE = [
   { label: '계약서', detail: '근로계약서, 전세계약서 등 조항을 꼼꼼히 봅니다' },
   { label: '공문·고지서', detail: '언제까지 무엇을 해야 하는지 정리합니다' },
-  { label: '그 밖의 문서', detail: '영수증, 안내문도 쉬운 말로 풀어 드립니다' },
+  {
+    label: '증명서·설명서',
+    detail: '기본증명서, 설명서처럼 기한이 없는 문서도 풀어서 보관해 둡니다',
+  },
 ];
 
 /**
@@ -69,14 +81,14 @@ export function CapturePage() {
               대신 짚어 드립니다
             </h1>
             <p className="hero__lead">
-              계약서든 공문이든 사진 한 장만 맡기시면 됩니다. 어려운 말을 쉽게 풀고, 언제까지
-              무엇을 해야 하는지, 조심할 부분은 없는지 항목별로 점검해 알려드려요.
+              계약서든 공문이든 사진 한 장만 맡기시면 됩니다. 어려운 말을 쉽게 풀고, 언제까지 무엇을
+              해야 하는지, 조심할 부분은 없는지 항목별로 점검해 알려드려요.
             </p>
 
             <ul className="hero__assurances">
               <li>서버에 저장하지 않음</li>
-              <li>가입 없이 바로</li>
-              <li>결과를 워드로 저장</li>
+              <li>마감은 일정 달력으로</li>
+              <li>개인정보는 가려서 보관</li>
             </ul>
           </div>
 
@@ -128,6 +140,22 @@ export function CapturePage() {
               </button>
             </form>
 
+            {isMockMode && (
+              <div className="intake__examples">
+                <span className="meta">예시 문서로 해보기</span>
+                {EXAMPLES.map((example) => (
+                  <button
+                    key={example.label}
+                    type="button"
+                    className="button button--quiet"
+                    onClick={() => setPastedText(example.text())}
+                  >
+                    {example.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="intake__guide">
               <h3 className="intake__guide-title">사진은 이렇게 찍어주세요</h3>
               <ul className="intake__guide-list">
@@ -172,8 +200,8 @@ export function CapturePage() {
           </ul>
 
           <p className="scope__note">
-            종류를 가리지 않습니다. 무엇을 올리셔도 먼저 어떤 문서인지 확인한 뒤, 그에 맞는
-            방식으로 점검합니다.
+            종류를 가리지 않습니다. 무엇을 올리셔도 먼저 어떤 문서인지 확인한 뒤, 그에 맞는 방식으로
+            점검합니다.
           </p>
         </div>
       </section>
